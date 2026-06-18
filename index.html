@@ -1,0 +1,280 @@
+package com.ogas_integrated_services
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+
+// Data Models
+data class Transaction(
+    val id: String = "",
+    val category: String = "",
+    val amount: Double = 0.0,
+    val details: String = "",
+    val timestamp: Long = 0L
+)
+
+data class AssetItem(
+    val id: String = "",
+    val name: String = "",
+    val type: String = "",
+    val quantity: Int = 0
+)
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                var userAuthenticated by remember { mutableStateOf(FirebaseAuth.getInstance().currentUser != null) }
+                var currentTab by remember { mutableStateOf(0) }
+
+                if (!userAuthenticated) {
+                    AuthScreen(onAuthSuccess = { userAuthenticated = true })
+                } else {
+                    Scaffold(
+                        bottomBar = {
+                            NavigationBar {
+                                NavigationBarItem(
+                                    selected = currentTab == 0,
+                                    onClick = { currentTab = 0 },
+                                    icon = { Text("💸") },
+                                    label = { Text("Finance") }
+                                )
+                                NavigationBarItem(
+                                    selected = currentTab == 1,
+                                    onClick = { currentTab = 1 },
+                                    icon = { Text("🌾") },
+                                    label = { Text("Assets") }
+                                )
+                            }
+                        }
+                    ) { innerPadding ->
+                        Surface(modifier = Modifier.padding(innerPadding)) {
+                            when (currentTab) {
+                                0 -> FinanceScreen()
+                                1 -> AssetScreen()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- SCREEN 1: AUTHENTICATION ---
+@Composable
+fun AuthScreen(onAuthSuccess: () -> Unit) {
+    val auth = FirebaseAuth.getInstance()
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
+    var isSignUp by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = if (isSignUp) "Create Farm Account" else "Welcome to Farm Manager",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email Address") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage.isNotEmpty()) {
+            Text(text = errorMessage, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                if (email.isBlank() || password.isBlank()) {
+                    errorMessage = "Please fill in all fields"
+                    return@Button
+                }
+                if (isSignUp) {
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { onAuthSuccess() }
+                        .addOnFailureListener { errorMessage = it.localizedMessage ?: "Registration Failed" }
+                } else {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { onAuthSuccess() }
+                        .addOnFailureListener { errorMessage = it.localizedMessage ?: "Login Failed" }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (isSignUp) "Register" else "Login")
+        }
+
+        TextButton(onClick = { isSignUp = !isSignUp }) {
+            Text(if (isSignUp) "Already have an account? Sign In" else "New farm? Create an account")
+        }
+    }
+}
+
+// --- SCREEN 2: FINANCIAL TRACKER ---
+@Composable
+fun FinanceScreen() {
+    val db = FirebaseFirestore.getInstance()
+    var amount by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+    var details by remember { mutableStateOf("") }
+    var transactionList by remember { mutableStateOf(listOf<Transaction>()) }
+
+    LaunchedEffect(Unit) {
+        db.collection("financials")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot != null) {
+                    transactionList = snapshot.toObjects(Transaction::class.java)
+                }
+            }
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Financial Ledger", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount (₦)") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Category (e.g., Feed, Seeds, Logistics)") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(value = details, onValueChange = { details = it }, label = { Text("Notes") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val parsedAmount = amount.toDoubleOrNull() ?: 0.0
+                if (parsedAmount > 0 && category.isNotBlank()) {
+                    val ref = db.collection("financials").document()
+                    val txn = Transaction(ref.id, category, parsedAmount, details, System.currentTimeMillis())
+                    ref.set(txn)
+                    amount = ""; category = ""; details = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Log Transaction")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("Recent Transactions", style = MaterialTheme.typography.titleMedium)
+
+        LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            items(transactionList) { txn ->
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(txn.category, style = MaterialTheme.typography.bodyLarge)
+                            Text("₦${txn.amount}", style = MaterialTheme.typography.bodyLarge)
+                        }
+                        if (txn.details.isNotEmpty()) {
+                            Text(txn.details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- SCREEN 3: ASSET & PRODUCTION REGISTRY ---
+@Composable
+fun AssetScreen() {
+    val db = FirebaseFirestore.getInstance()
+    var assetName by remember { mutableStateOf("") }
+    var assetType by remember { mutableStateOf("Livestock") }
+    var quantity by remember { mutableStateOf("") }
+    var assetList by remember { mutableStateOf(listOf<AssetItem>()) }
+
+    LaunchedEffect(Unit) {
+        db.collection("assets").addSnapshotListener { snapshot, _ ->
+            if (snapshot != null) {
+                assetList = snapshot.toObjects(AssetItem::class.java)
+            }
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Production Assets", style = MaterialTheme.typography.titleLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(value = assetName, onValueChange = { assetName = it }, label = { Text("Asset Label/Name") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Quantity/Count") }, modifier = Modifier.fillMaxWidth())
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(selected = assetType == "Livestock", onClick = { assetType = "Livestock" })
+                Text("Livestock")
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(selected = assetType == "Crop", onClick = { assetType = "Crop" })
+                Text("Crop")
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                val qty = quantity.toIntOrNull() ?: 0
+                if (assetName.isNotBlank() && qty > 0) {
+                    val ref = db.collection("assets").document()
+                    val newItem = AssetItem(ref.id, assetName, assetType, qty)
+                    ref.set(newItem)
+                    assetName = ""; quantity = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Register Asset")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("Inventory", style = MaterialTheme.typography.titleMedium)
+
+        LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            items(assetList) { item ->
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column {
+                            Text(item.name, style = MaterialTheme.typography.bodyLarge)
+                            Text("Type: ${item.type}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("Qty: ${item.quantity}", style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        }
+    }
+}
