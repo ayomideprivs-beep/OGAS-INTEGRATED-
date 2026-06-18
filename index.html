@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#15803d"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="OGAS FARM"/>
+<meta name="description" content="OGAS FARM – Your complete farm management system"/>
+<title>OGAS FARM</title>
+
+<!-- PWA Manifest inline -->
+<script>
+const manifestData = {
+  name: "OGAS FARM",
+  short_name: "OGAS FARM",
+  description: "Farm Management System",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#f0fdf4",
+  theme_color: "#15803d",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%2315803d'/><text y='130' x='96' font-size='120' text-anchor='middle'>🌾</text></svg>", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%2315803d'/><text y='360' x='256' font-size='320' text-anchor='middle'>🌾</text></svg>", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+</script>
+
+<!-- Apple Touch Icon via Canvas -->
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 180; canvas.height = 180;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#15803d';
+  const r = 36;
+  ctx.beginPath();
+  ctx.moveTo(r,0); ctx.lineTo(180-r,0); ctx.quadraticCurveTo(180,0,180,r);
+  ctx.lineTo(180,180-r); ctx.quadraticCurveTo(180,180,180-r,180);
+  ctx.lineTo(r,180); ctx.quadraticCurveTo(0,180,0,180-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.closePath(); ctx.fill();
+  ctx.font = '110px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🌾', 90, 95);
+  const appleLink = document.createElement('link');
+  appleLink.rel = 'apple-touch-icon';
+  appleLink.href = canvas.toDataURL();
+  document.head.appendChild(appleLink);
+});
+</script>
+
+<style>
+  :root {
+    --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0;
+    --green-600: #16a34a; --green-700: #15803d; --green-800: #166534;
+    --green-900: #14532d; --green-200t: #bbf7d030;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; overscroll-behavior: none; }
+  button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+  input, select, textarea { font-family: inherit; }
+  input:focus, select:focus { outline: 2px solid var(--green-600); outline-offset: 1px; }
+
+  /* Header */
+  .app-header { background: var(--green-700); color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .app-header .brand { display: flex; align-items: center; gap: 10px; }
+  .app-header .brand-icon { font-size: 28px; line-height:1; }
+  .app-header .brand-name { font-size: 18px; font-weight: 800; letter-spacing: .04em; line-height: 1.1; }
+  .app-header .brand-sub { font-size: 10px; color: #86efac; letter-spacing: .03em; }
+  .app-header .header-actions { display: flex; align-items: center; gap: 8px; }
+  .saved-badge { font-size: 11px; background: rgba(255,255,255,.15); color: #bbf7d0; padding: 3px 10px; border-radius: 20px; }
+  .backup-btn { background: rgba(255,255,255,.15); color: white; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+  .backup-btn:hover { background: rgba(255,255,255,.25); }
+  .install-btn { background: #f59e0b; color: white; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; }
+
+  /* Tabs */
+  .tab-bar { background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 57px; z-index: 90; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-inner { display: flex; min-width: max-content; padding: 0 4px; }
+  .tab-btn { display: flex; flex-direction: column; align-items: center; padding: 8px 12px; font-size: 10px; font-weight: 600; color: #94a3b8; border-bottom: 2px solid transparent; gap: 2px; transition: all .15s; white-space: nowrap; background: none; }
+  .tab-btn.active { color: var(--green-700); border-bottom-color: var(--green-700); }
+  .tab-icon { font-size: 18px; }
+
+  /* Content */
+  .content { max-width: 640px; margin: 0 auto; padding: 16px 14px 80px; }
+
+  /* Cards */
+  .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 16px; }
+  .card + .card { margin-top: 10px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+
+  /* Stat grid */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card { background: white; border-radius: 14px; border: 1px solid #e2e8f0; padding: 14px 12px; display: flex; align-items: center; gap: 10px; }
+  .stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .stat-label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .stat-value { font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+  .stat-sub { font-size: 10px; color: #94a3b8; }
+
+  /* Forms */
+  .form-panel { border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .form-title { font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-grid .full { grid-column: 1/-1; }
+  .form-label { font-size: 11px; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px; }
+  .form-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: 9px 12px; font-size: 13px; background: white; color: #0f172a; }
+  .form-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+  /* Buttons */
+  .btn { padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .15s; }
+  .btn-primary { background: var(--green-700); color: white; }
+  .btn-primary:hover { background: var(--green-800); }
+  .btn-secondary { background: #f1f5f9; color: #475569; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 9px; font-weight: 600; }
+  .btn-add { color: white; }
+
+  /* List items */
+  .list-item { background: white; border-radius: 14px; border: 1px solid #e2e8f0; padding: 14px; margin-bottom: 8px; }
+  .item-row { display: flex; align-items: flex-start; gap: 10px; }
+  .item-delete { color: #cbd5e1; background: none; font-size: 16px; margin-left: auto; flex-shrink: 0; }
+  .item-delete:hover { color: #ef4444; }
+
+  /* Badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef9c3; color: #854d0e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+  .badge-orange { background: #ffedd5; color: #9a3412; }
+  .badge-teal { background: #ccfbf1; color: #0f766e; }
+
+  /* Health bar */
+  .health-bar { display: flex; align-items: center; gap: 8px; }
+  .health-track { flex: 1; background: #f1f5f9; border-radius: 4px; height: 5px; overflow: hidden; }
+  .health-fill { height: 5px; border-radius: 4px; }
+
+  /* Alert */
+  .alert { border-radius: 12px; padding: 12px 14px; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .alert-red { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .alert-orange { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+
+  /* Empty state */
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 20px; color: #94a3b8; text-align: center; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 13px; font-weight: 500; max-width: 240px; line-height: 1.5; }
+
+  /* Weather */
+  .weather-hero { background: linear-gradient(135deg, #0ea5e9, #2563eb); border-radius: 16px; padding: 20px; color: white; }
+  .weather-temp { font-size: 52px; font-weight: 800; line-height: 1; }
+  .weather-meta { display: flex; gap: 14px; margin-top: 12px; font-size: 13px; flex-wrap: wrap; opacity: .9; }
+  .forecast-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .forecast-day { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
+  .forecast-dayname { font-size: 9px; font-weight: 700; color: #64748b; }
+  .forecast-icon { font-size: 18px; margin: 3px 0; }
+  .forecast-hi { font-size: 11px; font-weight: 700; color: #0f172a; }
+  .forecast-lo { font-size: 10px; color: #94a3b8; }
+  .forecast-rain { font-size: 9px; color: #3b82f6; font-weight: 700; margin-top: 2px; }
+
+  /* Finance */
+  .fin-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .fin-box { border-radius: 12px; padding: 12px 10px; text-align: center; }
+  .fin-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .fin-val { font-size: 20px; font-weight: 800; }
+
+  /* Task toggle */
+  .task-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: none; transition: all .15s; margin-top: 1px; }
+  .task-check.done { background: var(--green-600); border-color: var(--green-600); }
+  .task-check.done::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+
+  /* Backup modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: flex; align-items: flex-end; }
+  .modal-sheet { background: white; border-radius: 20px 20px 0 0; padding: 24px 20px 36px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .modal-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+  .option-card { border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 14px; }
+  .option-card:hover { border-color: var(--green-600); background: #f0fdf4; }
+  .option-icon { font-size: 28px; flex-shrink: 0; }
+  .option-title { font-weight: 700; font-size: 14px; color: #0f172a; }
+  .option-desc { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  /* Install prompt */
+  .install-banner { background: #f0fdf4; border: 1px solid var(--green-200); border-radius: 14px; padding: 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .install-banner-text { flex: 1; font-size: 13px; }
+  .install-banner-title { font-weight: 700; color: var(--green-800); }
+  .install-banner-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+  /* Scrollbar */
+  * { scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; }
+
+  @media (min-width: 500px) {
+    .stat-grid { grid-template-columns: repeat(4,1fr); }
+    .stat-grid .stat-card { flex-direction: column; text-align: center; }
+    .stat-icon { margin-bottom: 4px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'ogasfarm_v2';
+const WEATHER_KEY = 'ogasfarm_weather';
+
+function loadData() {
+  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : defaultData(); }
+  catch { return defaultData(); }
+}
+function defaultData() { return { crops:[], livestock:[], finance:[], tasks:[], inventory:[], savedCity:'' }; }
+function saveData(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let state = {
+  tab: 'Dashboard',
+  data: loadData(),
+  saved: false,
+  showBackup: false,
+  installPrompt: null,
+  isInstalled: false,
+  forms: {},
+  showForms: {},
+  filter: { tasks: 'All' },
+  weather: { input: '', query: '', data: null, loading: false, error: '' },
+};
+
+// ── PWA ───────────────────────────────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  state.installPrompt = e;
+  render();
+});
+window.addEventListener('appinstalled', () => {
+  state.isInstalled = true;
+  state.installPrompt = null;
+  render();
+});
+if (window.matchMedia('(display-mode: standalone)').matches) state.isInstalled = true;
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+const TABS = ['Dashboard','Crops','Livestock','Finance','Tasks','Weather','Inventory','Reports'];
+const TAB_ICONS = { Dashboard:'🏠', Crops:'🌱', Livestock:'🐄', Finance:'💰', Tasks:'✅', Weather:'🌤️', Inventory:'📦', Reports:'📊' };
+
+function setData(updater) {
+  state.data = typeof updater === 'function' ? updater(state.data) : updater;
+  saveData(state.data);
+  state.saved = true;
+  clearTimeout(state._savedTimer);
+  state._savedTimer = setTimeout(() => { state.saved = false; render(); }, 1800);
+  render();
+}
+
+function setTab(t) { state.tab = t; window.scrollTo(0,0); render(); }
+
+function render() {
+  document.getElementById('app').innerHTML = buildApp();
+  bindEvents();
+}
+
+function buildApp() {
+  return `
+    ${state.showBackup ? buildBackupModal() : ''}
+    <div class="app-header">
+      <div class="brand">
+        <div class="brand-icon">🌾</div>
+        <div>
+          <div class="brand-name">OGAS FARM</div>
+          <div class="brand-sub">Farm Management System</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        ${state.saved ? '<span class="saved-badge">✓ Saved</span>' : ''}
+        ${!state.isInstalled && state.installPrompt ? '<button class="install-btn" id="installBtn">📲 Install</button>' : ''}
+        <button class="backup-btn" id="backupBtn">☁️ Backup</button>
+      </div>
+    </div>
+    <div class="tab-bar"><div class="tab-inner">
+      ${TABS.map(t => `<button class="tab-btn${state.tab===t?' active':''}" data-tab="${t}">
+        <span class="tab-icon">${TAB_ICONS[t]}</span>${t}
+      </button>`).join('')}
+    </div></div>
+    <div class="content">${buildTabContent()}</div>
+  `;
+}
+
+function buildTabContent() {
+  switch(state.tab) {
+    case 'Dashboard': return buildDashboard();
+    case 'Crops':     return buildCrops();
+    case 'Livestock': return buildLivestock();
+    case 'Finance':   return buildFinance();
+    case 'Tasks':     return buildTasks();
+    case 'Weather':   return buildWeather();
+    case 'Inventory': return buildInventory();
+    case 'Reports':   return buildReports();
+  }
+  return '';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function badge(text, cls) { return `<span class="badge badge-${cls||'gray'}">${text}</span>`; }
+function healthBar(v) {
+  const c = v>=85?'#22c55e':v>=65?'#eab308':'#ef4444';
+  return `<div class="health-bar"><div class="health-track"><div class="health-fill" style="width:${v}%;background:${c}"></div></div><span style="font-size:11px;font-weight:700;color:${c}">${v}%</span></div>`;
+}
+function emptyState(icon, msg) {
+  return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${msg}</div></div>`;
+}
+function formInput(label, key, type='text', placeholder='', extra='') {
+  return `<div><label class="form-label">${label}</label><input class="form-input" type="${type}" id="f_${key}" placeholder="${placeholder}" ${extra}/></div>`;
+}
+function formSelect(label, key, options) {
+  return `<div><label class="form-label">${label}</label><select class="form-input" id="f_${key}">${options.map(o=>`<option>${o}</option>`).join('')}</select></div>`;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function buildDashboard() {
+  const d = state.data;
+  const income = d.finance.filter(f=>f.type==='Income').reduce((a,b)=>a+b.amount,0);
+  const expenses = d.finance.filter(f=>f.type==='Expense').reduce((a,b)=>a+b.amount,0);
+  const totalAnimals = d.livestock.reduce((a,b)=>a+b.count,0);
+  const pending = d.tasks.filter(t=>t.status==='Pending').length;
+  const lowStock = d.inventory.filter(i=>i.quantity<=i.minStock && i.minStock>0);
+  const highTasks = d.tasks.filter(t=>t.priority==='High'&&t.status==='Pending');
+  const isEmpty = d.crops.length===0&&d.livestock.length===0&&d.tasks.length===0&&d.finance.length===0;
+
+  let html = `<h2 style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:4px">🌾 Farm Overview</h2>
+  <p style="font-size:13px;color:#94a3b8;margin-bottom:16px">Your farm at a glance</p>`;
+
+  if (!state.isInstalled && !state.installPrompt) {
+    html += `<div class="install-banner">
+      <span style="font-size:28px">📲</span>
+      <div class="install-banner-text">
+        <div class="install-banner-title">Install OGAS FARM on your phone</div>
+        <div class="install-banner-sub">Open in Chrome/Safari → Share → "Add to Home Screen"</div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="stat-grid">
+    ${[
+      {icon:'🌱',label:'Crops',val:d.crops.length,sub:'active crops',bg:'#dcfce7'},
+      {icon:'🐄',label:'Livestock',val:totalAnimals,sub:'total animals',bg:'#fef3c7'},
+      {icon:'💰',label:'Net Balance',val:`$${(income-expenses).toLocaleString()}`,sub:'this period',bg:'#ede9fe'},
+      {icon:'✅',label:'Tasks',val:pending,sub:'pending',bg:'#fee2e2'},
+    ].map(s=>`<div class="stat-card">
+      <div class="stat-icon" style="background:${s.bg}">${s.icon}</div>
+      <div><div class="stat-label">${s.label}</div><div class="stat-value">${s.val}</div><div class="stat-sub">${s.sub}</div></div>
+    </div>`).join('')}
+  </div>`;
+
+  if (lowStock.length > 0) {
+    html += lowStock.map(i=>`<div class="alert alert-red">📦 <b>${i.item}</b> is low — ${i.quantity} ${i.unit} left (min: ${i.minStock})</div>`).join('');
+  }
+  highTasks.forEach(t => {
+    html += `<div class="alert alert-orange">🔴 <b>High priority:</b> ${t.title}${t.due?' — due '+t.due:''}</div>`;
+  });
+
+  if (isEmpty) {
+    html += `<div class="card" style="border-style:dashed;text-align:center;padding:32px 20px">
+      <div style="font-size:40px;margin-bottom:10px">🌱</div>
+      <div style="font-weight:700;color:#475569">Your farm is empty</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:6px">Start by adding crops, livestock, or tasks using the tabs above.</div>
+    </div>`;
+  }
+
+  if (d.finance.length > 0) {
+    html += `<div class="card" style="margin-top:14px"><div class="card-header"><div class="card-title">📋 Recent Transactions</div></div>
+      <div>${[...d.finance].reverse().slice(0,5).map(f=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f8fafc">
+          <div><div style="font-size:13px;font-weight:600;color:#1e293b">${f.description}</div>
+          <div style="font-size:11px;color:#94a3b8">${f.date}${f.category?' · '+f.category:''}</div></div>
+          <span style="font-weight:700;font-size:13px;color:${f.type==='Income'?'#16a34a':'#ef4444'}">${f.type==='Income'?'+':'-'}$${f.amount}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+// ── CROPS ─────────────────────────────────────────────────────────────────────
+const CROP_STATUS_COLORS = {Growing:'green',Ready:'blue',Flowering:'yellow',Seedling:'gray',Harvested:'orange'};
+
+function buildCrops() {
+  const show = state.showForms.crops;
+  let html = `<div class="card-header"><h2 class="card-title">🌱 Crops</h2>
+    <button class="btn btn-add btn-sm" style="background:#16a34a" id="toggleCropForm">+ Add Crop</button>
+  </div>`;
+
+  if (show) {
+    const f = state.forms.crop || {};
+    html += `<div class="form-panel" style="background:#f0fdf4;border:1px solid #bbf7d0;margin-bottom:12px">
+      <div class="form-title" style="color:#166534">New Crop</div>
+      <div class="form-grid">
+        <div><label class="form-label">Crop Name</label><input class="form-input" id="f_cname" value="${f.name||''}" placeholder="e.g. Maize"/></div>
+        <div><label class="form-label">Field</label><input class="form-input" id="f_cfield" value="${f.field||''}" placeholder="Field A"/></div>
+        <div><label class="form-label">Area</label><input class="form-input" id="f_carea" value="${f.area||''}" placeholder="2 acres"/></div>
+        <div><label class="form-label">Date Planted</label><input class="form-input" type="date" id="f_cplanted" value="${f.planted||''}"/></div>
+        <div><label class="form-label">Harvest Date</label><input class="form-input" type="date" id="f_charvest" value="${f.harvest||''}"/></div>
+        <div><label class="form-label">Status</label><select class="form-input" id="f_cstatus">${['Seedling','Growing','Flowering','Ready','Harvested'].map(s=>`<option${f.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="full"><label class="form-label">Health % (${f.health||80})</label><input type="range" min="0" max="100" value="${f.health||80}" id="f_chealth" style="width:100%;margin-top:4px"/></div>
+        <div class="full"><label class="form-label">Notes</label><input class="form-input" id="f_cnotes" value="${f.notes||''}" placeholder="Any notes..."/></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="saveCrop">Save Crop</button><button class="btn btn-secondary" id="cancelCropForm">Cancel</button></div>
+    </div>`;
+  }
+
+  if (state.data.crops.length === 0 && !show) return html + emptyState('🌱', "No crops added yet. Click '+ Add Crop' to get started.");
+  html += state.data.crops.map(c => `
+    <div class="list-item">
+      <div class="item-row">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-weight:700;font-size:15px">${c.name}</span>
+            ${badge(c.status, CROP_STATUS_COLORS[c.status]||'gray')}
+          </div>
+          <div style="font-size:12px;color:#64748b">${c.field}${c.area?' · '+c.area:''}</div>
+        </div>
+        <button class="item-delete" data-del-crop="${c.id}">✕</button>
+      </div>
+      ${healthBar(c.health)}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:11px;color:#64748b">
+        ${c.planted?`<div>🗓 Planted: ${c.planted}</div>`:''}
+        ${c.harvest?`<div>🌾 Harvest: ${c.harvest}</div>`:''}
+        ${c.notes?`<div style="grid-column:1/-1">📝 ${c.notes}</div>`:''}
+      </div>
+    </div>`).join('');
+  return html;
+}
+
+// ── LIVESTOCK ─────────────────────────────────────────────────────────────────
+const HEALTH_COLORS = {Excellent:'green',Good:'blue',Fair:'yellow',Poor:'red'};
+function animalIcon(t) { return t==='Cattle'?'🐄':t==='Goats'?'🐐':t==='Poultry'?'🐔':t==='Pigs'?'🐷':t==='Sheep'?'🐑':'🐾'; }
+
+function buildLivestock() {
+  const show = state.showForms.livestock;
+  let html = `<div class="card-header"><h2 class="card-title">🐄 Livestock</h2>
+    <button class="btn btn-add btn-sm" style="background:#d97706" id="toggleLiveForm">+ Add Animal</button>
+  </div>`;
+
+  if (show) {
+    const f = state.forms.livestock || {};
+    html += `<div class="form-panel" style="background:#fffbeb;border:1px solid #fde68a;margin-bottom:12px">
+      <div class="form-title" style="color:#92400e">New Livestock Entry</div>
+      <div class="form-grid">
+        <div><label class="form-label">Type (e.g. Cattle)</label><input class="form-input" id="f_ltype" value="${f.type||''}" placeholder="Cattle"/></div>
+        <div><label class="form-label">Breed</label><input class="form-input" id="f_lbreed" value="${f.breed||''}" placeholder="Angus"/></div>
+        <div><label class="form-label">Count</label><input class="form-input" type="number" id="f_lcount" value="${f.count||''}"/></div>
+        <div><label class="form-label">Location</label><input class="form-input" id="f_lloc" value="${f.location||''}" placeholder="Paddock 1"/></div>
+        <div><label class="form-label">Last Vet Visit</label><input class="form-input" type="date" id="f_lvet" value="${f.lastVet||''}"/></div>
+        <div><label class="form-label">Health Status</label><select class="form-input" id="f_lhealth">${['Excellent','Good','Fair','Poor'].map(s=>`<option${f.health===s?' selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="full"><label class="form-label">Notes</label><input class="form-input" id="f_lnotes" value="${f.notes||''}" placeholder="Any notes..."/></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="saveLive">Save</button><button class="btn btn-secondary" id="cancelLiveForm">Cancel</button></div>
+    </div>`;
+  }
+
+  if (state.data.livestock.length === 0 && !show) return html + emptyState('🐄', "No livestock added yet. Click '+ Add Animal' to get started.");
+  html += state.data.livestock.map(l=>`
+    <div class="list-item">
+      <div class="item-row">
+        <span style="font-size:28px">${animalIcon(l.type)}</span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-weight:700">${l.type}</span>
+            ${badge(l.health, HEALTH_COLORS[l.health]||'gray')}
+          </div>
+          <div style="font-size:12px;color:#64748b">${l.breed||''}${l.location?' · '+l.location:''}</div>
+        </div>
+        <button class="item-delete" data-del-live="${l.id}">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;text-align:center">
+        <div style="background:#fef3c7;border-radius:10px;padding:10px">
+          <div style="font-size:22px;font-weight:800;color:#b45309">${l.count}</div>
+          <div style="font-size:10px;color:#64748b">Animals</div>
+        </div>
+        <div style="background:#eff6ff;border-radius:10px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#1d4ed8">${l.lastVet||'N/A'}</div>
+          <div style="font-size:10px;color:#64748b">Last Vet</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:10px;padding:10px">
+          <div style="font-size:11px;font-weight:600;color:#475569">${l.notes||'—'}</div>
+          <div style="font-size:10px;color:#94a3b8">Notes</div>
+        </div>
+      </div>
+    </div>`).join('');
+  return html;
+}
+
+// ── FINANCE ───────────────────────────────────────────────────────────────────
+function buildFinance() {
+  const d = state.data;
+  const income = d.finance.filter(f=>f.type==='Income').reduce((a,b)=>a+b.amount,0);
+  const expenses = d.finance.filter(f=>f.type==='Expense').reduce((a,b)=>a+b.amount,0);
+  const show = state.showForms.finance;
+
+  let html = `<div class="card-header"><h2 class="card-title">💰 Finance</h2>
+    <button class="btn btn-add btn-sm" style="background:#4f46e5" id="toggleFinForm">+ Add Entry</button>
+  </div>
+  <div class="fin-summary">
+    <div class="fin-box" style="background:#f0fdf4;border:1px solid #bbf7d0">
+      <div class="fin-label" style="color:#16a34a">Income</div><div class="fin-val" style="color:#15803d">$${income.toLocaleString()}</div>
+    </div>
+    <div class="fin-box" style="background:#fff1f2;border:1px solid #fecdd3">
+      <div class="fin-label" style="color:#e11d48">Expenses</div><div class="fin-val" style="color:#e11d48">$${expenses.toLocaleString()}</div>
+    </div>
+    <div class="fin-box" style="background:#eef2ff;border:1px solid #c7d2fe">
+      <div class="fin-label" style="color:#4f46e5">Net</div><div class="fin-val" style="color:${income-expenses>=0?'#3730a3':'#ea580c'}">$${(income-expenses).toLocaleString()}</div>
+    </div>
+  </div>`;
+
+  if (show) {
+    const f = state.forms.finance || {};
+    html += `<div class="form-panel" style="background:#eef2ff;border:1px solid #c7d2fe;margin-bottom:12px">
+      <div class="form-title" style="color:#3730a3">New Transaction</div>
+      <div class="form-grid">
+        <div><label class="form-label">Date</label><input class="form-input" type="date" id="f_fdate" value="${f.date||''}"/></div>
+        <div><label class="form-label">Type</label><select class="form-input" id="f_ftype"><option>Income</option><option>Expense</option></select></div>
+        <div><label class="form-label">Category</label><input class="form-input" id="f_fcat" value="${f.category||''}" placeholder="e.g. Crop Sales"/></div>
+        <div><label class="form-label">Amount ($)</label><input class="form-input" type="number" id="f_famount" value="${f.amount||''}"/></div>
+        <div class="full"><label class="form-label">Description</label><input class="form-input" id="f_fdesc" value="${f.description||''}" placeholder="What was this for?"/></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="saveFinance">Save</button><button class="btn btn-secondary" id="cancelFinForm">Cancel</button></div>
+    </div>`;
+  }
+
+  if (d.finance.length === 0 && !show) return html + emptyState('💰', "No transactions yet. Click '+ Add Entry' to record income or expenses.");
+  html += `<div class="card">${[...d.finance].reverse().map(f=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f8fafc">
+      <span style="font-size:20px">${f.type==='Income'?'💵':'💸'}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1e293b">${f.description}</div>
+      <div style="font-size:11px;color:#94a3b8">${f.date}${f.category?' · '+f.category:''}</div></div>
+      <span style="font-weight:700;font-size:13px;color:${f.type==='Income'?'#16a34a':'#ef4444'}">${f.type==='Income'?'+':'-'}$${f.amount}</span>
+      <button class="item-delete" data-del-fin="${f.id}">✕</button>
+    </div>`).join('')}</div>`;
+  return html;
+}
+
+// ── TASKS ─────────────────────────────────────────────────────────────────────
+const PRIO_COLORS = {High:'red',Medium:'yellow',Low:'green'};
+
+function buildTasks() {
+  const show = state.showForms.tasks;
+  const filter = state.filter.tasks;
+  const filtered = filter==='All' ? state.data.tasks : state.data.tasks.filter(t=>t.status===filter);
+
+  let html = `<div class="card-header"><h2 class="card-title">✅ Tasks</h2>
+    <button class="btn btn-add btn-sm" style="background:#7c3aed" id="toggleTaskForm">+ Add Task</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    ${['All','Pending','Done'].map(f=>`<button class="btn btn-sm${filter===f?' btn-primary':' btn-secondary'}" style="${filter===f?'background:#7c3aed':''}" data-filter="${f}">${f}</button>`).join('')}
+  </div>`;
+
+  if (show) {
+    const f = state.forms.task || {};
+    html += `<div class="form-panel" style="background:#faf5ff;border:1px solid #e9d5ff;margin-bottom:12px">
+      <div class="form-title" style="color:#5b21b6">New Task</div>
+      <div class="form-grid">
+        <div class="full"><label class="form-label">Task Title</label><input class="form-input" id="f_ttitle" value="${f.title||''}" placeholder="What needs to be done?"/></div>
+        <div><label class="form-label">Priority</label><select class="form-input" id="f_tprio">${['High','Medium','Low'].map(p=>`<option${f.priority===p?' selected':''}>${p}</option>`).join('')}</select></div>
+        <div><label class="form-label">Category</label><select class="form-input" id="f_tcat">${['Crop','Livestock','Maintenance','Inventory','Finance','Other'].map(c=>`<option${f.category===c?' selected':''}>${c}</option>`).join('')}</select></div>
+        <div><label class="form-label">Due Date</label><input class="form-input" type="date" id="f_tdue" value="${f.due||''}"/></div>
+        <div><label class="form-label">Assigned To</label><input class="form-input" id="f_tassigned" value="${f.assigned||''}" placeholder="Name"/></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="saveTask">Save Task</button><button class="btn btn-secondary" id="cancelTaskForm">Cancel</button></div>
+    </div>`;
+  }
+
+  if (filtered.length===0&&!show) return html + emptyState('✅', filter==='All'?"No tasks yet. Click '+ Add Task' to create one.":`No ${filter.toLowerCase()} tasks.`);
+  html += filtered.map(t=>`
+    <div class="list-item" style="${t.status==='Done'?'opacity:.6':''}">
+      <div class="item-row">
+        <button class="task-check${t.status==='Done'?' done':''}" data-toggle-task="${t.id}"></button>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:600;${t.status==='Done'?'text-decoration:line-through;color:#94a3b8':'color:#1e293b'}">${t.title}</span>
+            ${badge(t.priority,PRIO_COLORS[t.priority]||'gray')}${badge(t.category,'blue')}
+          </div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:3px">${t.due?'📅 '+t.due:''}${t.assigned?' · 👤 '+t.assigned:''}</div>
+        </div>
+        <button class="item-delete" data-del-task="${t.id}">✕</button>
+      </div>
+    </div>`).join('');
+  return html;
+}
+
+// ── WEATHER ───────────────────────────────────────────────────────────────────
+const WMO_DESC = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Rain showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm w/ hail',99:'Severe thunderstorm'};
+const WMO_ICON = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const QUICK_CITIES = ['Nairobi','Lagos','Kampala','Accra','Cairo','Johannesburg','Dar es Salaam','Addis Ababa'];
+
+function farmTips(code) {
+  if ([61,63,65,80,81,82].includes(code)) return ['🌧️ Rain expected — delay pesticide/fertilizer application','💧 Good time to check drainage in fields','🐄 Ensure livestock shelter is adequate'];
+  if ([95,96,99].includes(code)) return ['⛈️ Avoid fieldwork during storms','🐄 Move livestock to shelter','🔒 Secure loose equipment'];
+  if ([0,1].includes(code)) return ['☀️ Good day for harvesting or fieldwork','💧 Check soil moisture — may need irrigation','🌾 Ideal for spraying if wind is low'];
+  return ['⛅ Monitor conditions throughout the day','🌱 Moderate conditions — normal activities OK'];
+}
+
+function buildWeather() {
+  const w = state.weather;
+  let html = `<h2 class="card-title" style="margin-bottom:14px">🌤️ Weather</h2>
+  <div class="card" style="margin-bottom:12px">
+    <label class="form-label">Search Location / Region</label>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <input class="form-input" id="weatherInput" value="${w.input||''}" placeholder="e.g. Nairobi, Kampala, Lagos, Cairo..." style="flex:1"/>
+      <button class="btn btn-sm" style="background:#0ea5e9;color:white;white-space:nowrap" id="weatherSearch">${w.loading?'…':'Search'}</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+      ${QUICK_CITIES.map(c=>`<button style="font-size:11px;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:20px;padding:4px 10px" data-city="${c}">${c}</button>`).join('')}
+    </div>
+    ${state.data.savedCity ? `<div style="font-size:11px;color:#64748b;margin-top:8px">⭐ Last: <b>${state.data.savedCity}</b> — <button id="loadSavedCity" style="color:#0ea5e9;background:none;font-size:11px;font-weight:600">Reload</button></div>` : ''}
+  </div>`;
+
+  if (w.error) html += `<div class="alert alert-red">${w.error}</div>`;
+  if (!w.data && !w.loading && !w.error) html += emptyState('🌍','Enter a city or region to get the live weather forecast for your farm area.');
+  if (w.loading) html += `<div class="empty"><div style="font-size:40px;margin-bottom:8px">🌤️</div><div style="font-size:13px;color:#94a3b8">Fetching weather...</div></div>`;
+
+  if (w.data) {
+    const wd = w.data;
+    html += `
+    <div class="weather-hero">
+      <div style="font-size:12px;opacity:.8;margin-bottom:6px">📍 ${wd.location}</div>
+      <div style="display:flex;align-items:flex-end;gap:12px">
+        <span style="font-size:52px">${WMO_ICON[wd.current.weathercode]||'🌡️'}</span>
+        <div>
+          <div class="weather-temp">${Math.round(wd.current.temperature_2m)}°C</div>
+          <div style="opacity:.85;font-size:13px;margin-top:2px">${WMO_DESC[wd.current.weathercode]||'—'}</div>
+        </div>
+      </div>
+      <div class="weather-meta">
+        <div>💧 Humidity: ${wd.current.relative_humidity_2m}%</div>
+        <div>💨 Wind: ${wd.current.windspeed_10m} km/h</div>
+        ${wd.current.uv_index!=null?`<div>☀️ UV: ${wd.current.uv_index}</div>`:''}
+      </div>
+    </div>
+    <div class="forecast-grid" style="margin-top:10px">
+      ${wd.daily.time.map((date,i)=>{
+        const d = new Date(date);
+        return `<div class="forecast-day">
+          <div class="forecast-dayname">${DAYS[d.getDay()]}</div>
+          <div class="forecast-icon">${WMO_ICON[wd.daily.weathercode[i]]||'🌡️'}</div>
+          <div class="forecast-hi">${Math.round(wd.daily.temperature_2m_max[i])}°</div>
+          <div class="forecast-lo">${Math.round(wd.daily.temperature_2m_min[i])}°</div>
+          ${wd.daily.precipitation_probability_max[i]!=null?`<div class="forecast-rain">${wd.daily.precipitation_probability_max[i]}%</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:10px">🧑‍🌾 Farming Tips for Today</div>
+      ${farmTips(wd.current.weathercode).map(tip=>`<div style="background:#f0f9ff;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:13px;color:#334155">${tip}</div>`).join('')}
+    </div>`;
+  }
+  return html;
+}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+function catIcon(c) { return c==='Feed'?'🌽':c==='Seeds'?'🌱':c==='Equipment'?'⚙️':c==='Chemicals'?'🧪':'📦'; }
+
+function buildInventory() {
+  const show = state.showForms.inventory;
+  let html = `<div class="card-header"><h2 class="card-title">📦 Inventory</h2>
+    <button class="btn btn-add btn-sm" style="background:#0d9488" id="toggleInvForm">+ Add Item</button>
+  </div>`;
+
+  if (show) {
+    const f = state.forms.inventory || {};
+    html += `<div class="form-panel" style="background:#f0fdfa;border:1px solid #99f6e4;margin-bottom:12px">
+      <div class="form-title" style="color:#0f766e">New Inventory Item</div>
+      <div class="form-grid">
+        <div class="full"><label class="form-label">Item Name</label><input class="form-input" id="f_iname" value="${f.item||''}" placeholder="e.g. NPK Fertilizer"/></div>
+        <div><label class="form-label">Category</label><select class="form-input" id="f_icat">${['Inputs','Feed','Seeds','Equipment','Chemicals','Other'].map(c=>`<option${f.category===c?' selected':''}>${c}</option>`).join('')}</select></div>
+        <div><label class="form-label">Unit</label><input class="form-input" id="f_iunit" value="${f.unit||'kg'}" placeholder="kg, liters..."/></div>
+        <div><label class="form-label">Quantity</label><input class="form-input" type="number" id="f_iqty" value="${f.quantity||''}"/></div>
+        <div><label class="form-label">Min Stock Alert</label><input class="form-input" type="number" id="f_imin" value="${f.minStock||''}"/></div>
+        <div class="full"><label class="form-label">Last Restocked</label><input class="form-input" type="date" id="f_idate" value="${f.lastRestocked||''}"/></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" id="saveInv">Save Item</button><button class="btn btn-secondary" id="cancelInvForm">Cancel</button></div>
+    </div>`;
+  }
+
+  if (state.data.inventory.length===0&&!show) return html + emptyState('📦',"No inventory items yet. Click '+ Add Item' to track your stock.");
+  html += state.data.inventory.map(i=>{
+    const low = i.quantity<=i.minStock&&i.minStock>0;
+    return `<div class="list-item" style="${low?'border-color:#fca5a5':''}">
+      <div class="item-row">
+        <div style="width:44px;height:44px;border-radius:10px;background:${low?'#fef2f2':'#f0fdfa'};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${catIcon(i.category)}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:14px">${i.item}</span>
+            ${low?badge('Low Stock','red'):''}${badge(i.category,'teal')}
+          </div>
+          ${i.lastRestocked?`<div style="font-size:11px;color:#94a3b8;margin-top:2px">Restocked: ${i.lastRestocked} · Min: ${i.minStock} ${i.unit}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:${low?'#dc2626':'#0f766e'}">${i.quantity}</div>
+          <div style="font-size:11px;color:#94a3b8">${i.unit}</div>
+        </div>
+        <button class="item-delete" data-del-inv="${i.id}">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+  return html;
+}
+
+// ── REPORTS ───────────────────────────────────────────────────────────────────
+function buildReports() {
+  const d = state.data;
+  const income = d.finance.filter(f=>f.type==='Income').reduce((a,b)=>a+b.amount,0);
+  const expenses = d.finance.filter(f=>f.type==='Expense').reduce((a,b)=>a+b.amount,0);
+  const totalAnimals = d.livestock.reduce((a,b)=>a+b.count,0);
+  const doneTasks = d.tasks.filter(t=>t.status==='Done').length;
+  const lowStock = d.inventory.filter(i=>i.quantity<=i.minStock&&i.minStock>0);
+  const catExp = d.finance.filter(f=>f.type==='Expense').reduce((acc,f)=>{ acc[f.category]=(acc[f.category]||0)+f.amount; return acc; },{});
+  const hasData = d.finance.length>0||d.crops.length>0||d.livestock.length>0||d.tasks.length>0;
+
+  if (!hasData) return `<h2 class="card-title" style="margin-bottom:14px">📊 Reports</h2>`+emptyState('📊','No data yet. Add crops, livestock, finances, and tasks to generate reports.');
+
+  let html = `<h2 class="card-title" style="margin-bottom:14px">📊 Reports</h2>
+  <div class="card">
+    <div style="font-weight:700;font-size:15px;margin-bottom:12px">Financial Summary</div>
+    ${[['Total Income','$'+income.toLocaleString(),'#16a34a'],['Total Expenses','$'+expenses.toLocaleString(),'#ef4444'],['Net Profit / Loss','$'+(income-expenses).toLocaleString(),income-expenses>=0?'#4f46e5':'#ea580c'],['Profit Margin',income>0?((income-expenses)/income*100).toFixed(1)+'%':'N/A','#1e293b']].map(([l,v,c])=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f8fafc">
+        <span style="font-size:13px;color:#475569">${l}</span>
+        <span style="font-weight:700;color:${c}">${v}</span>
+      </div>`).join('')}
+  </div>`;
+
+  if (Object.keys(catExp).length>0) {
+    html += `<div class="card" style="margin-top:10px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:12px">Expense Breakdown</div>
+      ${Object.entries(catExp).map(([cat,amt])=>{
+        const pct=Math.round(amt/expenses*100);
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:#475569">${cat}</span><span style="font-weight:700">$${amt} (${pct}%)</span></div>
+          <div style="background:#f1f5f9;border-radius:4px;height:6px"><div style="background:#4f46e5;height:6px;border-radius:4px;width:${pct}%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+    ${d.crops.length>0?`<div class="card"><div style="font-weight:700;font-size:13px;margin-bottom:10px">🌱 Crop Status</div>
+      ${['Seedling','Growing','Flowering','Ready','Harvested'].map(s=>{const c=d.crops.filter(cr=>cr.status===s).length;return c>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f8fafc"><span style="color:#475569">${s}</span><span style="font-weight:700">${c}</span></div>`:'';}).join('')}
+    </div>`:''}
+    ${d.livestock.length>0?`<div class="card"><div style="font-weight:700;font-size:13px;margin-bottom:10px">🐄 Livestock</div>
+      ${d.livestock.map(l=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f8fafc"><span style="color:#475569">${l.type}</span><span style="font-weight:700">${l.count}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:6px 0"><span>Total</span><span>${totalAnimals}</span></div>
+    </div>`:''}
+  </div>
+  <div class="card" style="margin-top:10px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:12px">Farm Health Snapshot</div>
+    ${[
+      ['Tasks Completed',`${doneTasks} / ${d.tasks.length}`,doneTasks===d.tasks.length&&d.tasks.length>0?'🟢':'🟡'],
+      ['Low Stock Items',lowStock.length>0?lowStock.map(i=>i.item).join(', '):'None',lowStock.length>0?'🔴':'🟢'],
+      ['Livestock Needing Attention',d.livestock.filter(l=>l.health==='Poor'||l.health==='Fair').length+' groups','🟡'],
+      ['Crops Ready to Harvest',d.crops.filter(c=>c.status==='Ready').length+' crops','🟢'],
+    ].map(([l,v,icon])=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f8fafc">
+      <span>${icon}</span><span style="font-size:13px;color:#475569;flex:1">${l}</span><span style="font-size:13px;font-weight:700;color:#1e293b">${v}</span>
+    </div>`).join('')}
+  </div>`;
+  return html;
+}
+
+// ── BACKUP MODAL ──────────────────────────────────────────────────────────────
+function buildBackupModal() {
+  return `<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">☁️ Backup & Restore</div>
+      <div class="modal-sub">Keep your farm data safe — export, import, or sync with Google Drive.</div>
+
+      <div class="option-card" id="exportJSON">
+        <span class="option-icon">💾</span>
+        <div><div class="option-title">Download Backup File</div><div class="option-desc">Save all your farm data as a .json file to your phone's storage</div></div>
+      </div>
+
+      <div class="option-card" id="importJSON">
+        <span class="option-icon">📂</span>
+        <div><div class="option-title">Restore from File</div><div class="option-desc">Load a previously saved backup .json file</div></div>
+      </div>
+      <input type="file" id="importFileInput" accept=".json" style="display:none"/>
+
+      <div class="option-card" id="googleDriveBackup">
+        <span class="option-icon">🟢</span>
+        <div><div class="option-title">Backup to Google Drive</div><div class="option-desc">Sign in with Google and save your data to Drive</div></div>
+      </div>
+
+      <div class="option-card" id="googleDriveRestore">
+        <span class="option-icon">🔄</span>
+        <div><div class="option-title">Restore from Google Drive</div><div class="option-desc">Load your latest backup from Google Drive</div></div>
+      </div>
+
+      <div style="background:#f0fdf4;border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:#166534">
+        <b>📱 Tip:</b> For automatic phone backup, enable Google Drive auto-sync on your device under Settings → Google → Backup.
+      </div>
+
+      <button class="btn btn-secondary" style="width:100%;margin-top:14px" id="closeBackup">Close</button>
+    </div>
+  </div>`;
+}
+
+// ── GOOGLE DRIVE INTEGRATION ──────────────────────────────────────────────────
+const DRIVE_FILE_NAME = 'ogasfarm_backup.json';
+
+async function backupToGoogleDrive() {
+  try {
+    // Use Google Identity Services for OAuth
+    const clientId = 'YOUR_GOOGLE_CLIENT_ID'; // User needs to configure this
+    // Show instructions modal instead since client ID not set
+    showDriveInstructions('backup');
+  } catch(e) {
+    alert('Google Drive backup failed: ' + e.message);
+  }
+}
+
+function showDriveInstructions(mode) {
+  // Since full OAuth requires a registered app, offer the manual Google approach
+  const action = mode === 'backup' ? 'backup' : 'restore';
+  const dataStr = JSON.stringify(state.data, null, 2);
+  
+  if (mode === 'backup') {
+    // Download the file — user can then manually upload to Drive
+    downloadJSON();
+    alert('✅ File downloaded!\n\nTo save to Google Drive:\n1. Open the Google Drive app\n2. Tap + → Upload\n3. Select the ogasfarm_backup.json file\n\nOr enable Google One automatic phone backup to back up all your downloads automatically.');
+  } else {
+    alert('To restore from Google Drive:\n1. Open Google Drive\n2. Find your ogasfarm_backup.json file\n3. Download it to your phone\n4. Then use "Restore from File" option here.');
+  }
+}
+
+function downloadJSON() {
+  const str = JSON.stringify(state.data, null, 2);
+  const blob = new Blob([str], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ogasfarm_backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (parsed && typeof parsed === 'object') {
+        const merged = {...defaultData(), ...parsed};
+        setData(merged);
+        alert('✅ Farm data restored successfully!');
+        state.showBackup = false;
+        render();
+      } else {
+        alert('❌ Invalid backup file.');
+      }
+    } catch {
+      alert('❌ Failed to read file. Make sure it is a valid OGAS FARM backup.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── WEATHER FETCH ─────────────────────────────────────────────────────────────
+async function fetchWeather(city) {
+  if (!city.trim()) return;
+  state.weather.loading = true;
+  state.weather.error = '';
+  state.weather.data = null;
+  render();
+  try {
+    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+    const geoData = await geoRes.json();
+    if (!geoData.results?.length) { state.weather.error = 'Location not found. Try a different city or region.'; state.weather.loading = false; render(); return; }
+    const {latitude, longitude, name, country} = geoData.results[0];
+    const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,uv_index&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=7`);
+    const wData = await wRes.json();
+    state.weather.data = { location:`${name}, ${country}`, current:wData.current, daily:wData.daily };
+    // Save last city
+    setData(d => ({...d, savedCity: city}));
+  } catch(e) {
+    state.weather.error = 'Failed to fetch weather. Check your internet connection.';
+  }
+  state.weather.loading = false;
+  render();
+}
+
+// ── EVENT BINDING ─────────────────────────────────────────────────────────────
+function bindEvents() {
+  // Tabs
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => setTab(btn.dataset.tab));
+  });
+
+  // Header buttons
+  document.getElementById('backupBtn')?.addEventListener('click', () => { state.showBackup = true; render(); });
+  document.getElementById('installBtn')?.addEventListener('click', async () => {
+    if (state.installPrompt) {
+      state.installPrompt.prompt();
+      const {outcome} = await state.installPrompt.userChoice;
+      if (outcome === 'accepted') { state.isInstalled = true; state.installPrompt = null; render(); }
+    }
+  });
+
+  // Backup modal
+  document.getElementById('closeBackup')?.addEventListener('click', () => { state.showBackup = false; render(); });
+  document.getElementById('modalOverlay')?.addEventListener('click', e => { if (e.target.id==='modalOverlay') { state.showBackup = false; render(); }});
+  document.getElementById('exportJSON')?.addEventListener('click', downloadJSON);
+  document.getElementById('importJSON')?.addEventListener('click', () => document.getElementById('importFileInput')?.click());
+  document.getElementById('importFileInput')?.addEventListener('change', e => { if (e.target.files[0]) importJSON(e.target.files[0]); });
+  document.getElementById('googleDriveBackup')?.addEventListener('click', () => showDriveInstructions('backup'));
+  document.getElementById('googleDriveRestore')?.addEventListener('click', () => showDriveInstructions('restore'));
+
+  // ── CROPS ──
+  document.getElementById('toggleCropForm')?.addEventListener('click', () => { state.showForms.crops = !state.showForms.crops; render(); });
+  document.getElementById('cancelCropForm')?.addEventListener('click', () => { state.showForms.crops = false; render(); });
+  document.getElementById('saveCrop')?.addEventListener('click', () => {
+    const name = document.getElementById('f_cname')?.value.trim();
+    const field = document.getElementById('f_cfield')?.value.trim();
+    if (!name||!field) { alert('Please enter a crop name and field.'); return; }
+    setData(d => ({...d, crops: [...d.crops, {
+      id:Date.now(), name, field,
+      area: document.getElementById('f_carea')?.value||'',
+      planted: document.getElementById('f_cplanted')?.value||'',
+      harvest: document.getElementById('f_charvest')?.value||'',
+      status: document.getElementById('f_cstatus')?.value||'Seedling',
+      health: Number(document.getElementById('f_chealth')?.value||80),
+      notes: document.getElementById('f_cnotes')?.value||''
+    }]}));
+    state.showForms.crops = false; render();
+  });
+  document.querySelectorAll('[data-del-crop]').forEach(b => {
+    b.addEventListener('click', () => { if(confirm('Delete this crop?')) setData(d => ({...d, crops:d.crops.filter(c=>c.id!=b.dataset.delCrop)})); });
+  });
+  // Health slider label
+  document.getElementById('f_chealth')?.addEventListener('input', e => {
+    const label = document.querySelector('label[for="f_chealth"]') || document.querySelector('.form-label');
+    // update inline
+  });
+
+  // ── LIVESTOCK ──
+  document.getElementById('toggleLiveForm')?.addEventListener('click', () => { state.showForms.livestock = !state.showForms.livestock; render(); });
+  document.getElementById('cancelLiveForm')?.addEventListener('click', () => { state.showForms.livestock = false; render(); });
+  document.getElementById('saveLive')?.addEventListener('click', () => {
+    const type = document.getElementById('f_ltype')?.value.trim();
+    if (!type) { alert('Please enter an animal type.'); return; }
+    setData(d => ({...d, livestock:[...d.livestock, {
+      id:Date.now(), type,
+      breed: document.getElementById('f_lbreed')?.value||'',
+      count: Number(document.getElementById('f_lcount')?.value||0),
+      location: document.getElementById('f_lloc')?.value||'',
+      lastVet: document.getElementById('f_lvet')?.value||'',
+      health: document.getElementById('f_lhealth')?.value||'Good',
+      notes: document.getElementById('f_lnotes')?.value||''
+    }]}));
+    state.showForms.livestock = false; render();
+  });
+  document.querySelectorAll('[data-del-live]').forEach(b => {
+    b.addEventListener('click', () => { if(confirm('Delete this livestock entry?')) setData(d => ({...d, livestock:d.livestock.filter(l=>l.id!=b.dataset.delLive)})); });
+  });
+
+  // ── FINANCE ──
+  document.getElementById('toggleFinForm')?.addEventListener('click', () => { state.showForms.finance = !state.showForms.finance; render(); });
+  document.getElementById('cancelFinForm')?.addEventListener('click', () => { state.showForms.finance = false; render(); });
+  document.getElementById('saveFinance')?.addEventListener('click', () => {
+    const desc = document.getElementById('f_fdesc')?.value.trim();
+    const amt = document.getElementById('f_famount')?.value;
+    if (!desc||!amt) { alert('Please enter a description and amount.'); return; }
+    setData(d => ({...d, finance:[...d.finance, {
+      id:Date.now(),
+      date: document.getElementById('f_fdate')?.value||'',
+      type: document.getElementById('f_ftype')?.value||'Income',
+      category: document.getElementById('f_fcat')?.value||'',
+      amount: Number(amt),
+      description: desc
+    }]}));
+    state.showForms.finance = false; render();
+  });
+  document.querySelectorAll('[data-del-fin]').forEach(b => {
+    b.addEventListener('click', () => { if(confirm('Delete this transaction?')) setData(d => ({...d, finance:d.finance.filter(f=>f.id!=b.dataset.delFin)})); });
+  });
+
+  // ── TASKS ──
+  document.querySelectorAll('[data-filter]').forEach(b => {
+    b.addEventListener('click', () => { state.filter.tasks = b.dataset.filter; render(); });
+  });
+  document.getElementById('toggleTaskForm')?.addEventListener('click', () => { state.showForms.tasks = !state.showForms.tasks; render(); });
+  document.getElementById('cancelTaskForm')?.addEventListener('click', () => { state.showForms.tasks = false; render(); });
+  document.getElementById('saveTask')?.addEventListener('click', () => {
+    const title = document.getElementById('f_ttitle')?.value.trim();
+    if (!title) { alert('Please enter a task title.'); return; }
+    setData(d => ({...d, tasks:[...d.tasks, {
+      id:Date.now(), title, status:'Pending',
+      priority: document.getElementById('f_tprio')?.value||'Medium',
+      category: document.getElementById('f_tcat')?.value||'Crop',
+      due: document.getElementById('f_tdue')?.value||'',
+      assigned: document.getElementById('f_tassigned')?.value||''
+    }]}));
+    state.showForms.tasks = false; render();
+  });
+  document.querySelectorAll('[data-toggle-task]').forEach(b => {
+    b.addEventListener('click', () => setData(d => ({...d, tasks:d.tasks.map(t=>t.id==b.dataset.toggleTask?{...t,status:t.status==='Done'?'Pending':'Done'}:t)})));
+  });
+  document.querySelectorAll('[data-del-task]').forEach(b => {
+    b.addEventListener('click', () => { if(confirm('Delete this task?')) setData(d => ({...d, tasks:d.tasks.filter(t=>t.id!=b.dataset.delTask)})); });
+  });
+
+  // ── WEATHER ──
+  document.getElementById('weatherSearch')?.addEventListener('click', () => {
+    const val = document.getElementById('weatherInput')?.value.trim();
+    if (val) { state.weather.input = val; fetchWeather(val); }
+  });
+  document.getElementById('weatherInput')?.addEventListener('keydown', e => {
+    if (e.key==='Enter') { const val = e.target.value.trim(); if (val) { state.weather.input = val; fetchWeather(val); }}
+  });
+  document.querySelectorAll('[data-city]').forEach(b => {
+    b.addEventListener('click', () => { state.weather.input = b.dataset.city; fetchWeather(b.dataset.city); });
+  });
+  document.getElementById('loadSavedCity')?.addEventListener('click', () => {
+    if (state.data.savedCity) { state.weather.input = state.data.savedCity; fetchWeather(state.data.savedCity); }
+  });
+
+  // ── INVENTORY ──
+  document.getElementById('toggleInvForm')?.addEventListener('click', () => { state.showForms.inventory = !state.showForms.inventory; render(); });
+  document.getElementById('cancelInvForm')?.addEventListener('click', () => { state.showForms.inventory = false; render(); });
+  document.getElementById('saveInv')?.addEventListener('click', () => {
+    const item = document.getElementById('f_iname')?.value.trim();
+    if (!item) { alert('Please enter an item name.'); return; }
+    setData(d => ({...d, inventory:[...d.inventory, {
+      id:Date.now(), item,
+      category: document.getElementById('f_icat')?.value||'Inputs',
+      unit: document.getElementById('f_iunit')?.value||'kg',
+      quantity: Number(document.getElementById('f_iqty')?.value||0),
+      minStock: Number(document.getElementById('f_imin')?.value||0),
+      lastRestocked: document.getElementById('f_idate')?.value||''
+    }]}));
+    state.showForms.inventory = false; render();
+  });
+  document.querySelectorAll('[data-del-inv]').forEach(b => {
+    b.addEventListener('click', () => { if(confirm('Delete this item?')) setData(d => ({...d, inventory:d.inventory.filter(i=>i.id!=b.dataset.delInv)})); });
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
